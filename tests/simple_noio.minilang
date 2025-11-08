@@ -1,0 +1,5 @@
+i = 2;
+j = 3;
+sum = i + j * 4;
+print sum;
+end

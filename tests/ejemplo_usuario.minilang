@@ -1,0 +1,8 @@
+// Programa de Ejemplo: Suma de números
+// Lee dos números, suma y mostrar resultado
+
+read num1;
+read num2;
+resultado = num1 + num2;
+print resultado;
+end
