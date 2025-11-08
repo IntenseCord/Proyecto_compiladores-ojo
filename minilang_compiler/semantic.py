@@ -6,7 +6,7 @@ Realiza comprobaciones básicas:
 - Comprueba tipos (solo int implícito).
 """
 from typing import Dict
-from .ast_nodes import Program, Read, Assign, Print, If, While, BinaryOp, Literal, Var
+from .ast_nodes import Program, Read, Assign, Print, If, While, BinaryOp, Literal, StringLiteral, Var
 
 
 class SemanticError(Exception):
@@ -55,6 +55,8 @@ class SemanticAnalyzer:
 
     def visit_expr(self, node):
         if isinstance(node, Literal):
+            return
+        if isinstance(node, StringLiteral):
             return
         if isinstance(node, Var):
             name = node.name

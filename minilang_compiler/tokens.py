@@ -8,6 +8,7 @@ class TokenType(Enum):
     EOF = auto()
     IDENT = auto()
     NUMBER = auto()
+    STRING = auto()
 
     # Keywords
     READ = auto()

@@ -94,6 +94,35 @@ class Lexer:
         typ = KEYWORDS.get(s, TokenType.IDENT)
         return Token(typ, s, self.line, start_col)
 
+    def make_string(self):
+        """Parse a string literal enclosed in double quotes."""
+        start_col = self.col
+        self.advance()  # skip opening "
+        s = ''
+        while self.current and self.current != '"':
+            if self.current == '\\' and self.peek() == '"':
+                # Handle escaped quote
+                s += '"'
+                self.advance()
+                self.advance()
+            elif self.current == '\\' and self.peek() == 'n':
+                # Handle newline escape
+                s += '\n'
+                self.advance()
+                self.advance()
+            elif self.current == '\\' and self.peek() == '\\':
+                # Handle escaped backslash
+                s += '\\'
+                self.advance()
+                self.advance()
+            else:
+                s += self.current
+                self.advance()
+        if self.current != '"':
+            raise LexerError(f"Unterminated string at {self.line}:{start_col}")
+        self.advance()  # skip closing "
+        return Token(TokenType.STRING, s, self.line, start_col)
+
     def tokenize(self) -> List[Token]:
         tokens: List[Token] = []
         while self.current:
@@ -107,6 +136,11 @@ class Lexer:
 
             if self.current.isdigit():
                 tokens.append(self.make_number())
+                continue
+
+            # string literal
+            if self.current == '"':
+                tokens.append(self.make_string())
                 continue
 
             # two-char operators

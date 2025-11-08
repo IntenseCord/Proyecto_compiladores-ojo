@@ -18,7 +18,10 @@ def generate_asm(tac_list) -> List[str]:
         elif instr.op == 'print':
             src = instr.a
             # load value and out
-            if src.isdigit():
+            if src.startswith('"') and src.endswith('"'):
+                # String literal
+                asm.append(f"PUSH {src}")
+            elif src.isdigit():
                 asm.append(f"PUSH {src}")
             else:
                 asm.append(f"LOAD {src}")
@@ -26,7 +29,7 @@ def generate_asm(tac_list) -> List[str]:
         elif instr.op == 'assign':
             target = instr.a
             src = instr.b
-            if isinstance(src, str) and src.isdigit():
+            if isinstance(src, str) and (src.isdigit() or (src.startswith('"') and src.endswith('"'))):
                 asm.append(f"PUSH {src}")
             else:
                 asm.append(f"LOAD {src}")

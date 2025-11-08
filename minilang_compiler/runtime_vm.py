@@ -37,11 +37,16 @@ class SimpleVM:
                 continue
             if op == 'PUSH':
                 val = args[0]
-                try:
-                    self.stack.append(int(val))
-                except ValueError:
-                    # push variable value
-                    self.stack.append(self.vars.get(val, 0))
+                # Check if it's a string literal (starts and ends with quotes)
+                if isinstance(val, str) and val.startswith('"') and val.endswith('"'):
+                    # Store the string without quotes
+                    self.stack.append(val[1:-1])
+                else:
+                    try:
+                        self.stack.append(int(val))
+                    except ValueError:
+                        # push variable value
+                        self.stack.append(self.vars.get(val, 0))
                 continue
             if op == 'LOAD':
                 name = args[0]

@@ -55,5 +55,10 @@ class Literal(Node):
 
 
 @dataclass
+class StringLiteral(Node):
+    value: str
+
+
+@dataclass
 class Var(Node):
     name: str

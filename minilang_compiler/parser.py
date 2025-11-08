@@ -132,6 +132,10 @@ class Parser:
             val = int(self.current.value)
             self.advance()
             return ast_nodes.Literal(value=val)
+        if ct == TokenType.STRING:
+            val = self.current.value
+            self.advance()
+            return ast_nodes.StringLiteral(value=val)
         if ct == TokenType.IDENT:
             name = self.current.value
             self.advance()

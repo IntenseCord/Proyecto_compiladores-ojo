@@ -114,6 +114,9 @@ class IRGenerator:
     def gen_expr(self, node):
         if isinstance(node, ast.Literal):
             return str(node.value)
+        if isinstance(node, ast.StringLiteral):
+            # Return string with quotes to distinguish from variables
+            return f'"{node.value}"'
         if isinstance(node, ast.Var):
             return node.name
         if isinstance(node, ast.BinaryOp):
