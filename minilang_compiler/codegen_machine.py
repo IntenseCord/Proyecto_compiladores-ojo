@@ -10,27 +10,31 @@ OPCODES = {
     'SUB': 4,
     'MUL': 5,
     'DIV': 6,
-    'JMP': 7,
-    'JLT': 8,
-    'JGT': 9,
-    'JLE': 10,
-    'JGE': 11,
-    'JEQ': 12,
-    'JNE': 13,
-    'IN': 14,
-    'OUT': 15,
-    'PUSH': 16,
-    'JZ': 17,
-    'JNZ': 18,
-    'LT': 19,
-    'GT': 20,
-    'LE': 21,
-    'GE': 22,
-    'EQ': 23,
-    'NE': 24,
-    'CALL': 25,
-    'RET': 26,
-    'PARAM': 27,
+    'MOD': 7,
+    'JMP': 8,
+    'JLT': 9,
+    'JGT': 10,
+    'JLE': 11,
+    'JGE': 12,
+    'JEQ': 13,
+    'JNE': 14,
+    'IN': 15,
+    'OUT': 16,
+    'PUSH': 17,
+    'JZ': 18,
+    'JNZ': 19,
+    'LT': 20,
+    'GT': 21,
+    'LE': 22,
+    'GE': 23,
+    'EQ': 24,
+    'NE': 25,
+    'CALL': 26,
+    'RET': 27,
+    'PARAM': 28,
+    'AND': 29,
+    'OR': 30,
+    'NOT': 31,
 }
 
 
@@ -81,7 +85,7 @@ def assemble(asm_lines: List[str]):
             if opu in ('JZ', 'JNZ'):
                 machine.append((opu, args))
                 continue
-            if opu in ('LT','GT','LE','GE','EQ','NE'):
+            if opu in ('LT','GT','LE','GE','EQ','NE','AND','OR','NOT'):
                 machine.append((opu, args))
                 continue
             if opu == 'RET':

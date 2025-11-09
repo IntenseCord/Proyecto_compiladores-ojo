@@ -90,7 +90,11 @@ class SimpleVM:
                 b = self.stack.pop(); a = self.stack.pop()
                 self.stack.append(a // b if b != 0 else 0)
                 continue
-            if op in ('LT','GT','LE','GE','EQ','NE'):
+            if op == 'MOD':
+                b = self.stack.pop(); a = self.stack.pop()
+                self.stack.append(a % b if b != 0 else 0)
+                continue
+            if op in ('LT','GT','LE','GE','EQ','NE','AND','OR'):
                 b = self.stack.pop(); a = self.stack.pop()
                 if op == 'LT':
                     res = 1 if a < b else 0
@@ -102,8 +106,17 @@ class SimpleVM:
                     res = 1 if a >= b else 0
                 elif op == 'EQ':
                     res = 1 if a == b else 0
-                else:
+                elif op == 'NE':
                     res = 1 if a != b else 0
+                elif op == 'AND':
+                    res = 1 if (a != 0 and b != 0) else 0
+                elif op == 'OR':
+                    res = 1 if (a != 0 or b != 0) else 0
+                self.stack.append(res)
+                continue
+            if op == 'NOT':
+                a = self.stack.pop()
+                res = 1 if a == 0 else 0  # NOT: 0 becomes 1, non-zero becomes 0
                 self.stack.append(res)
                 continue
             if op == 'JNZ':

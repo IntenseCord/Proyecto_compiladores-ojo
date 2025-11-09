@@ -1,0 +1,20 @@
+x = 7;
+y = 15;
+
+if not (x > 10) {
+    print "x is NOT greater than 10";
+}
+
+if not (y < 10) {
+    print "y is NOT less than 10";
+}
+
+if not (x > 10 and y > 10) {
+    print "NOT both greater than 10";
+}
+
+if not (x < 5) and y > 10 {
+    print "x is NOT less than 5 AND y is greater than 10";
+}
+
+end;

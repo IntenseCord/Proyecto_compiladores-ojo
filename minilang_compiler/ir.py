@@ -208,6 +208,11 @@ class IRGenerator:
             elif node.op == '+':
                 # Unary + is a no-op, just return operand
                 return operand
+            elif node.op == 'not':
+                # Generate: t = not operand (unary operation)
+                t = self.new_temp()
+                self.emit(TACInstr('unaryop', a=t, b='not', c=operand))
+                return t
             else:
                 raise Exception(f"Unknown unary operator: {node.op}")
         if isinstance(node, ast.BinaryOp):

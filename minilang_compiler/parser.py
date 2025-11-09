@@ -158,8 +158,39 @@ class Parser:
         self.expect(TokenType.RBRACE)
         return stmts
 
-    # Expressions: support relational operators and arithmetic with precedence
+    # Expressions: support logical, relational operators and arithmetic with precedence
+    # Precedence (lowest to highest): OR -> AND -> relational -> additive -> multiplicative -> factor
     def parse_expr(self):
+        return self.parse_or()
+
+    def parse_or(self):
+        left = self.parse_and()
+        while self.current.type == TokenType.OR:
+            op_token = self.current
+            self.advance()
+            right = self.parse_and()
+            left = ast_nodes.BinaryOp(op=op_token.value, left=left, right=right)
+        return left
+
+    def parse_and(self):
+        left = self.parse_not()
+        while self.current.type == TokenType.AND:
+            op_token = self.current
+            self.advance()
+            right = self.parse_not()
+            left = ast_nodes.BinaryOp(op=op_token.value, left=left, right=right)
+        return left
+
+    def parse_not(self):
+        # Handle NOT as unary operator
+        if self.current.type == TokenType.NOT:
+            op_token = self.current
+            self.advance()
+            operand = self.parse_not()  # Allow chaining: not not x
+            return ast_nodes.UnaryOp(op=op_token.value, operand=operand)
+        return self.parse_relational()
+
+    def parse_relational(self):
         left = self.parse_additive()
         # relational operators
         if self.current.type in (TokenType.LT, TokenType.GT, TokenType.LE, TokenType.GE, TokenType.EQ, TokenType.NE):
@@ -180,7 +211,7 @@ class Parser:
 
     def parse_term(self):
         node = self.parse_factor()
-        while self.current.type in (TokenType.MUL, TokenType.DIV):
+        while self.current.type in (TokenType.MUL, TokenType.DIV, TokenType.MOD):
             op = self.current.value
             self.advance()
             right = self.parse_factor()

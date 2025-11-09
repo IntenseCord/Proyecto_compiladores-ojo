@@ -21,6 +21,9 @@ KEYWORDS = {
     "def": TokenType.DEF,
     "return": TokenType.RETURN,
     "end": TokenType.END,
+    "and": TokenType.AND,
+    "or": TokenType.OR,
+    "not": TokenType.NOT,
 }
 
 
@@ -175,6 +178,8 @@ class Lexer:
                 tokens.append(Token(TokenType.MUL, ch, self.line, self.col))
             elif ch == '/':
                 tokens.append(Token(TokenType.DIV, ch, self.line, self.col))
+            elif ch == '%':
+                tokens.append(Token(TokenType.MOD, ch, self.line, self.col))
             elif ch == '=':
                 tokens.append(Token(TokenType.ASSIGN, ch, self.line, self.col))
             elif ch == '<':

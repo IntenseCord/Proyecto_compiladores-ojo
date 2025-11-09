@@ -27,6 +27,7 @@ class TokenType(Enum):
     MINUS = auto()
     MUL = auto()
     DIV = auto()
+    MOD = auto()
     ASSIGN = auto()
 
     # Relational
@@ -36,6 +37,11 @@ class TokenType(Enum):
     GE = auto()
     EQ = auto()
     NE = auto()
+
+    # Logical
+    AND = auto()
+    OR = auto()
+    NOT = auto()
 
     # Separators
     SEMI = auto()

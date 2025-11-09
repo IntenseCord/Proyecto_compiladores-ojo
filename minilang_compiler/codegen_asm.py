@@ -43,6 +43,21 @@ def generate_asm(tac_list) -> List[str]:
             else:
                 asm.append(f"LOAD {src}")
             asm.append(f"STORE {target}")
+        elif instr.op == 'unaryop':
+            target = instr.a
+            op = instr.b
+            operand = instr.c
+            # Load operand
+            if isinstance(operand, str) and is_number(operand):
+                asm.append(f"PUSH {operand}")
+            else:
+                asm.append(f"LOAD {operand}")
+            # Apply unary operation
+            if op == 'not':
+                asm.append("NOT")
+            else:
+                asm.append(f"; UNKNOWN_UNARY_OP {op}")
+            asm.append(f"STORE {target}")
         elif instr.op == 'binop':
             target = instr.a
             op = instr.b
@@ -64,6 +79,8 @@ def generate_asm(tac_list) -> List[str]:
                 asm.append("MUL")
             elif op == '/':
                 asm.append("DIV")
+            elif op == '%':
+                asm.append("MOD")
             elif op == '<':
                 asm.append("LT")
             elif op == '>':
@@ -76,6 +93,10 @@ def generate_asm(tac_list) -> List[str]:
                 asm.append("EQ")
             elif op == '!=':
                 asm.append("NE")
+            elif op == 'and':
+                asm.append("AND")
+            elif op == 'or':
+                asm.append("OR")
             else:
                 asm.append(f"; UNKNOWN_OP {op}")
             asm.append(f"STORE {target}")
