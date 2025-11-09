@@ -9,6 +9,11 @@ Instrucciones (op campo):
 - 'binop'        : a=target, b=op, c=(left,right)
 - 'read'         : a=var
 - 'print'        : a=expr
+- 'param'        : a=expr (push parameter for function call)
+- 'call'         : a=function_name, b=num_params, c=return_target (or None)
+- 'return'       : a=expr (or None)
+- 'func_start'   : a=function_name
+- 'func_end'     : a=function_name
 """
 from typing import List, Tuple, Any
 from . import ast_nodes as ast
@@ -45,11 +50,25 @@ class IRGenerator:
     def generate(self, program: ast.Program) -> List[TACInstr]:
         self.code = []
         self.functions = {}
-        # Note: For simplicity, we're not implementing full function support with stack frames
-        # Functions are stored but not called in this MVP version
-        # This would require implementing CALL/RET instructions and stack management in the VM
+        
+        # If there are functions, generate a jump to main code
+        if program.functions:
+            main_label = self.new_label()
+            self.emit(TACInstr('goto', a=main_label))
+        
+        # Generate code for all function definitions first
         for func in program.functions:
             self.functions[func.name] = func
+            # func_start stores function name and parameter list
+            self.emit(TACInstr('func_start', a=func.name, b=func.params))
+            # Function parameters are already in scope (handled by VM)
+            for stmt in func.body:
+                self.gen_stmt(stmt)
+            self.emit(TACInstr('func_end', a=func.name))
+        
+        # Then generate main program code
+        if program.functions:
+            self.emit(TACInstr('label', a=main_label))
         for stmt in program.statements:
             self.gen_stmt(stmt)
         return self.code
@@ -171,10 +190,14 @@ class IRGenerator:
         if isinstance(node, ast.Var):
             return node.name
         if isinstance(node, ast.FuncCall):
-            # For MVP: inline simple function calls (no recursion, no proper stack)
-            # This is a simplified version - proper implementation would need CALL/RET
-            # For now, we'll just note that functions exist but won't generate TAC for calls
-            raise Exception(f"Function calls not fully implemented in TAC generation yet")
+            # Generate PARAM instructions for each argument
+            for arg in node.args:
+                arg_val = self.gen_expr(arg)
+                self.emit(TACInstr('param', a=arg_val))
+            # Generate CALL instruction
+            result = self.new_temp()
+            self.emit(TACInstr('call', a=node.name, b=len(node.args), c=result))
+            return result
         if isinstance(node, ast.UnaryOp):
             operand = self.gen_expr(node.operand)
             if node.op == '-':

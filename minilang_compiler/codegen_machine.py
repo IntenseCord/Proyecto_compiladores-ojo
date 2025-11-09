@@ -28,6 +28,9 @@ OPCODES = {
     'GE': 22,
     'EQ': 23,
     'NE': 24,
+    'CALL': 25,
+    'RET': 26,
+    'PARAM': 27,
 }
 
 
@@ -37,6 +40,12 @@ def assemble(asm_lines: List[str]):
     for line in asm_lines:
         line = line.strip()
         if not line or line.startswith(';'):
+            # Handle comments: store them as instructions so VM can process metadata
+            if line.startswith('; PARAMS'):
+                # Extract params metadata
+                parts = line.split(None, 2)  # Split into [';', 'PARAMS', 'a,b,c']
+                if len(parts) >= 3:
+                    machine.append((';', ['PARAMS ' + parts[2]]))
             continue
         # Check if line contains a string literal (quoted text)
         if '"' in line:
@@ -54,9 +63,16 @@ def assemble(asm_lines: List[str]):
             # represent label as tuple ('label', name)
             machine.append(('label', opu[:-1]))
             continue
-        # support PUSH, LOAD, STORE, ADD, SUB, MUL, DIV, JNZ, JZ, LT, GT, LE, GE, EQ, NE, IN, OUT
+        # support PUSH, LOAD, STORE, ADD, SUB, MUL, DIV, JNZ, JZ, LT, GT, LE, GE, EQ, NE, IN, OUT, CALL, RET, PARAM
         code = OPCODES.get(opu)
         args = parts[1:]
+        
+        # Handle CALL specially to uppercase the function label
+        if opu == 'CALL':
+            call_args = [args[0].upper()] + args[1:]
+            machine.append(('CALL', call_args))
+            continue
+            
         if code is None:
             # extend mapping for push and jumps
             if opu == 'PUSH':
@@ -67,6 +83,12 @@ def assemble(asm_lines: List[str]):
                 continue
             if opu in ('LT','GT','LE','GE','EQ','NE'):
                 machine.append((opu, args))
+                continue
+            if opu == 'RET':
+                machine.append(('RET', args))
+                continue
+            if opu == 'PARAM':
+                machine.append(('PARAM', args))
                 continue
             # unknown -> store as raw
             machine.append((opu, args))

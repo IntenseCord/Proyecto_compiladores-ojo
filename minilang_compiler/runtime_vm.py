@@ -20,11 +20,25 @@ class SimpleVM:
         self.ip = 0
         self.stack = []
         self.vars = {}
+        # Call stack for function calls
+        self.call_stack = []
+        # Parameters buffer for function calls
+        self.params = []
+        # Function metadata: maps function label to parameter names
+        self.function_params = {}
         # build label -> ip map
         self.labels = {}
         for idx, instr in enumerate(self.code):
             if instr[0] == 'label':
                 self.labels[instr[1]] = idx
+                # Check if next instruction is a PARAMS comment
+                if idx + 1 < len(self.code) and self.code[idx + 1][0] == ';':
+                    # Parse parameter names from comment
+                    comment = self.code[idx + 1][1][0] if self.code[idx + 1][1] else ''
+                    if comment.startswith('PARAMS '):
+                        params_str = comment[7:]  # Remove 'PARAMS ' prefix
+                        param_names = [p.strip() for p in params_str.split(',')]
+                        self.function_params[instr[1]] = param_names
 
     def run(self):
         while self.ip < len(self.code):
@@ -34,6 +48,9 @@ class SimpleVM:
             # advance by default
             self.ip += 1
             if op == 'label':
+                continue
+            if op == ';':
+                # Comment, skip
                 continue
             if op == 'PUSH':
                 val = args[0]
@@ -118,6 +135,49 @@ class SimpleVM:
             if op == 'OUT':
                 val = self.stack.pop() if self.stack else 0
                 print(val)
+                continue
+            if op == 'PARAM':
+                # Pop value from stack and add to parameters list
+                val = self.stack.pop() if self.stack else 0
+                self.params.append(val)
+                continue
+            if op == 'CALL':
+                # CALL FUNC_name num_params
+                func_label = args[0]
+                num_params = int(args[1]) if len(args) > 1 else 0
+                # Get parameters from params buffer
+                call_params = self.params[-num_params:] if num_params > 0 else []
+                # Save return address and local variables
+                self.call_stack.append({
+                    'return_ip': self.ip,
+                    'saved_vars': self.vars.copy(),
+                })
+                # Clear params buffer (keep only the ones not used)
+                if num_params > 0:
+                    self.params = self.params[:-num_params]
+                # Set up new local scope with parameters
+                self.vars = {}
+                # Assign parameters to local variables
+                param_names = self.function_params.get(func_label, [])
+                for i, param_name in enumerate(param_names):
+                    if i < len(call_params):
+                        self.vars[param_name] = call_params[i]
+                # Jump to function
+                self.ip = self.labels.get(func_label, self.ip)
+                continue
+            if op == 'RET':
+                # Pop return value from stack (if any)
+                return_value = self.stack.pop() if self.stack else 0
+                # Restore caller's context
+                if self.call_stack:
+                    frame = self.call_stack.pop()
+                    self.ip = frame['return_ip']
+                    self.vars = frame['saved_vars']
+                    # Push return value back onto stack
+                    self.stack.append(return_value)
+                else:
+                    # No call stack means we're at the end of program
+                    return
                 continue
             # Unknown ops: ignore
             # print('VM: unknown op', op, args)

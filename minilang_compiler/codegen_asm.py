@@ -108,6 +108,42 @@ def generate_asm(tac_list) -> List[str]:
                 asm.append(f"; UNKNOWN_COND {op}")
             # if condition true -> jump
             asm.append(f"JNZ {label}")
+        elif instr.op == 'func_start':
+            # Mark function start with a label and store param names
+            asm.append(f"FUNC_{instr.a}:")
+            # Add metadata comment with parameter names
+            if instr.b:  # instr.b contains parameter list
+                param_list = ','.join(instr.b)
+                asm.append(f"; PARAMS {param_list}")
+        elif instr.op == 'func_end':
+            # Function end - only add RET if no explicit return was just generated
+            # (return statement already emits RET)
+            # For safety, we can skip this or add a label
+            pass
+        elif instr.op == 'param':
+            # Push parameter onto stack
+            src = instr.a
+            if isinstance(src, str) and (is_number(src) or (src.startswith('"') and src.endswith('"'))):
+                asm.append(f"PUSH {src}")
+            else:
+                asm.append(f"LOAD {src}")
+            asm.append("PARAM")
+        elif instr.op == 'call':
+            # CALL function_name num_params return_target
+            func_name = instr.a
+            num_params = instr.b
+            return_target = instr.c
+            asm.append(f"CALL FUNC_{func_name} {num_params}")
+            if return_target:
+                asm.append(f"STORE {return_target}")
+        elif instr.op == 'return':
+            # Push return value and return
+            src = instr.a
+            if isinstance(src, str) and (is_number(src) or (src.startswith('"') and src.endswith('"'))):
+                asm.append(f"PUSH {src}")
+            else:
+                asm.append(f"LOAD {src}")
+            asm.append("RET")
         else:
             asm.append(f"; UNHANDLED_TAC {instr}")
     return asm
