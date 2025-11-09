@@ -183,6 +183,10 @@ class Lexer:
                 tokens.append(Token(TokenType.LBRACE, ch, self.line, self.col))
             elif ch == '}':
                 tokens.append(Token(TokenType.RBRACE, ch, self.line, self.col))
+            elif ch == '(':
+                tokens.append(Token(TokenType.LPAREN, ch, self.line, self.col))
+            elif ch == ')':
+                tokens.append(Token(TokenType.RPAREN, ch, self.line, self.col))
             else:
                 raise LexerError(f"Unexpected character {ch!r} at {self.line}:{self.col}")
 

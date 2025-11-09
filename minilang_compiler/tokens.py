@@ -37,6 +37,8 @@ class TokenType(Enum):
     SEMI = auto()
     LBRACE = auto()
     RBRACE = auto()
+    LPAREN = auto()
+    RPAREN = auto()
 
 
 @dataclass

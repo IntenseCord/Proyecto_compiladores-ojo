@@ -140,16 +140,12 @@ class Parser:
             name = self.current.value
             self.advance()
             return ast_nodes.Var(name=name)
-        if ct == TokenType.LPAREN if hasattr(TokenType, 'LPAREN') else None:
-            # In case LPAREN token isn't defined; but support parentheses as IDENTIFIED by '(' char
-            pass
-        # support parentheses via checking raw token value
-        if self.current.value == '(':
+        if ct == TokenType.LPAREN:
             # consume '('
             self.advance()
             node = self.parse_expr()
             # expect ')'
-            if self.current.value != ')':
+            if self.current.type != TokenType.RPAREN:
                 raise ParserError(f"Expected ')' at {self.current.line}:{self.current.column}")
             self.advance()
             return node
