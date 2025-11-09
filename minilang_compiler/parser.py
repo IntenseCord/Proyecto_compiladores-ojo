@@ -104,12 +104,21 @@ class Parser:
             cond = self.parse_expr()
             self.expect(TokenType.LBRACE)
             then_block = self.parse_block()
+            # Parse elif blocks
+            elif_blocks = []
+            while self.current.type == TokenType.ELIF:
+                self.advance()
+                elif_cond = self.parse_expr()
+                self.expect(TokenType.LBRACE)
+                elif_body = self.parse_block()
+                elif_blocks.append((elif_cond, elif_body))
+            # Parse else block
             else_block = None
             if self.current.type == TokenType.ELSE:
                 self.advance()
                 self.expect(TokenType.LBRACE)
                 else_block = self.parse_block()
-            return ast_nodes.If(cond=cond, then_block=then_block, else_block=else_block)
+            return ast_nodes.If(cond=cond, then_block=then_block, elif_blocks=elif_blocks, else_block=else_block)
 
         if ct == TokenType.WHILE:
             self.advance()

@@ -1,0 +1,13 @@
+x = 7;
+
+if x > 10 {
+    print "Greater than 10";
+} elif x > 5 {
+    print "Greater than 5";
+} elif x > 2 {
+    print "Greater than 2";
+} else {
+    print "Less than or equal to 2";
+}
+
+end

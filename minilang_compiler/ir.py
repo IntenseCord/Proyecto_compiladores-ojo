@@ -72,27 +72,44 @@ class IRGenerator:
             self.emit(TACInstr('assign', a=node.target, b=src))
             return
         if isinstance(node, ast.If):
-            # cond -> produce left op right and conditional goto
-            else_label = self.new_label()
-            end_label = self.new_label() if node.else_block else else_label
+            # if-elif-else chain: generate labels for each branch
+            end_label = self.new_label()
+            
+            # Generate code for initial if condition
             left, op, right = self.flatten_cond(node.cond)
-            # if left op right goto then_label
             then_label = self.new_label()
+            next_label = self.new_label()
+            
+            # if cond goto then_label else goto next_label
             self.emit(TACInstr('ifgoto', a=left, b=op, c=(right, then_label)))
-            # false -> goto else_label
-            self.emit(TACInstr('goto', a=else_label))
-            # then
+            self.emit(TACInstr('goto', a=next_label))
+            
+            # then block
             self.emit(TACInstr('label', a=then_label))
             for s in node.then_block:
                 self.gen_stmt(s)
             self.emit(TACInstr('goto', a=end_label))
-            # else
-            self.emit(TACInstr('label', a=else_label))
+            
+            # elif blocks
+            for elif_cond, elif_body in node.elif_blocks:
+                self.emit(TACInstr('label', a=next_label))
+                left, op, right = self.flatten_cond(elif_cond)
+                elif_then_label = self.new_label()
+                next_label = self.new_label()
+                self.emit(TACInstr('ifgoto', a=left, b=op, c=(right, elif_then_label)))
+                self.emit(TACInstr('goto', a=next_label))
+                self.emit(TACInstr('label', a=elif_then_label))
+                for s in elif_body:
+                    self.gen_stmt(s)
+                self.emit(TACInstr('goto', a=end_label))
+            
+            # else block
+            self.emit(TACInstr('label', a=next_label))
             if node.else_block:
                 for s in node.else_block:
                     self.gen_stmt(s)
-            if node.else_block:
-                self.emit(TACInstr('label', a=end_label))
+            
+            self.emit(TACInstr('label', a=end_label))
             return
         if isinstance(node, ast.While):
             start = self.new_label()

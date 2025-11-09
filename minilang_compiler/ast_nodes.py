@@ -46,6 +46,7 @@ class Assign(Node):
 class If(Node):
     cond: Any
     then_block: List[Node]
+    elif_blocks: List[tuple]  # List of (condition, block) tuples
     else_block: Optional[List[Node]] = None
 
 

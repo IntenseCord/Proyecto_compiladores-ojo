@@ -14,6 +14,7 @@ class TokenType(Enum):
     READ = auto()
     PRINT = auto()
     IF = auto()
+    ELIF = auto()
     ELSE = auto()
     WHILE = auto()
     FOR = auto()

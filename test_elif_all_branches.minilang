@@ -1,0 +1,49 @@
+print "Test 1: x=15";
+x = 15;
+if x > 10 {
+    print "Branch 1: Greater than 10";
+} elif x > 5 {
+    print "Branch 2: Greater than 5";
+} elif x > 2 {
+    print "Branch 3: Greater than 2";
+} else {
+    print "Branch 4: Less than or equal to 2";
+}
+
+print "Test 2: x=7";
+x = 7;
+if x > 10 {
+    print "Branch 1: Greater than 10";
+} elif x > 5 {
+    print "Branch 2: Greater than 5";
+} elif x > 2 {
+    print "Branch 3: Greater than 2";
+} else {
+    print "Branch 4: Less than or equal to 2";
+}
+
+print "Test 3: x=3";
+x = 3;
+if x > 10 {
+    print "Branch 1: Greater than 10";
+} elif x > 5 {
+    print "Branch 2: Greater than 5";
+} elif x > 2 {
+    print "Branch 3: Greater than 2";
+} else {
+    print "Branch 4: Less than or equal to 2";
+}
+
+print "Test 4: x=1";
+x = 1;
+if x > 10 {
+    print "Branch 1: Greater than 10";
+} elif x > 5 {
+    print "Branch 2: Greater than 5";
+} elif x > 2 {
+    print "Branch 3: Greater than 2";
+} else {
+    print "Branch 4: Less than or equal to 2";
+}
+
+end

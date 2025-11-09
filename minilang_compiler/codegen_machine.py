@@ -38,7 +38,15 @@ def assemble(asm_lines: List[str]):
         line = line.strip()
         if not line or line.startswith(';'):
             continue
-        parts = line.split()
+        # Check if line contains a string literal (quoted text)
+        if '"' in line:
+            # Extract opcode and string literal separately
+            first_quote = line.index('"')
+            op_part = line[:first_quote].strip()
+            string_part = line[first_quote:]
+            parts = [op_part, string_part]
+        else:
+            parts = line.split()
         op = parts[0]
         opu = op.upper()
         # Labels end with ':'

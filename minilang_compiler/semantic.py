@@ -58,6 +58,11 @@ class SemanticAnalyzer:
             # analyze then-block
             for s in node.then_block:
                 self.visit_stmt(s)
+            # analyze elif blocks
+            for elif_cond, elif_body in node.elif_blocks:
+                self.visit_expr(elif_cond)
+                for s in elif_body:
+                    self.visit_stmt(s)
             # analyze else-block if present
             if node.else_block:
                 for s in node.else_block:
