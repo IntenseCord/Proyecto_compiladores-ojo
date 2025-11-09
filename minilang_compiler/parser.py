@@ -32,7 +32,12 @@ class Parser:
         raise ParserError(f"Expected {ttype.name} at {self.current.line}:{self.current.column}, got {self.current.type.name}")
 
     def parse(self) -> ast_nodes.Program:
+        functions = []
         stmts = []
+        # Parse function definitions first
+        while self.current.type == TokenType.DEF:
+            functions.append(self.parse_func_def())
+        # Then parse main program statements
         while self.current.type != TokenType.END and self.current.type != TokenType.EOF:
             stmts.append(self.parse_stmt())
         # consume 'end'
@@ -41,7 +46,26 @@ class Parser:
         else:
             raise ParserError(f"Expected 'end' at {self.current.line}:{self.current.column}")
         # optional EOF
-        return ast_nodes.Program(statements=stmts)
+        return ast_nodes.Program(functions=functions, statements=stmts)
+
+    def parse_func_def(self):
+        # def name(param1, param2, ...) { body }
+        self.expect(TokenType.DEF)
+        name = self.expect(TokenType.IDENT).value
+        self.expect(TokenType.LPAREN)
+        params = []
+        if self.current.type != TokenType.RPAREN:
+            params.append(self.expect(TokenType.IDENT).value)
+            while self.current.type == TokenType.COMMA:
+                self.advance()
+                params.append(self.expect(TokenType.IDENT).value)
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LBRACE)
+        body = []
+        while self.current.type != TokenType.RBRACE and self.current.type != TokenType.EOF:
+            body.append(self.parse_stmt())
+        self.expect(TokenType.RBRACE)
+        return ast_nodes.FuncDef(name=name, params=params, body=body)
 
     def parse_stmt(self):
         ct = self.current.type
@@ -56,6 +80,12 @@ class Parser:
             expr = self.parse_expr()
             self.expect(TokenType.SEMI)
             return ast_nodes.Print(expr=expr)
+
+        if ct == TokenType.RETURN:
+            self.advance()
+            expr = self.parse_expr()
+            self.expect(TokenType.SEMI)
+            return ast_nodes.Return(expr=expr)
 
         if ct == TokenType.IDENT:
             ident = self.current
@@ -87,6 +117,28 @@ class Parser:
             self.expect(TokenType.LBRACE)
             body = self.parse_block()
             return ast_nodes.While(cond=cond, body=body)
+
+        if ct == TokenType.FOR:
+            # for init; cond; update { body }
+            self.advance()
+            # parse init (assignment)
+            ident = self.expect(TokenType.IDENT)
+            self.expect(TokenType.ASSIGN)
+            init_expr = self.parse_expr()
+            init = ast_nodes.Assign(target=ident.value, expr=init_expr)
+            self.expect(TokenType.SEMI)
+            # parse condition
+            cond = self.parse_expr()
+            self.expect(TokenType.SEMI)
+            # parse update (assignment)
+            update_ident = self.expect(TokenType.IDENT)
+            self.expect(TokenType.ASSIGN)
+            update_expr = self.parse_expr()
+            update = ast_nodes.Assign(target=update_ident.value, expr=update_expr)
+            # parse body
+            self.expect(TokenType.LBRACE)
+            body = self.parse_block()
+            return ast_nodes.For(init=init, cond=cond, update=update, body=body)
 
         raise ParserError(f"Unexpected token {self.current.type.name} at {self.current.line}:{self.current.column}")
 
@@ -128,6 +180,12 @@ class Parser:
 
     def parse_factor(self):
         ct = self.current.type
+        # Handle unary operators (+ and -)
+        if ct == TokenType.MINUS or ct == TokenType.PLUS:
+            op = self.current.value
+            self.advance()
+            operand = self.parse_factor()
+            return ast_nodes.UnaryOp(op=op, operand=operand)
         if ct == TokenType.NUMBER:
             val = int(self.current.value)
             self.advance()
@@ -139,6 +197,17 @@ class Parser:
         if ct == TokenType.IDENT:
             name = self.current.value
             self.advance()
+            # Check if it's a function call
+            if self.current.type == TokenType.LPAREN:
+                self.advance()
+                args = []
+                if self.current.type != TokenType.RPAREN:
+                    args.append(self.parse_expr())
+                    while self.current.type == TokenType.COMMA:
+                        self.advance()
+                        args.append(self.parse_expr())
+                self.expect(TokenType.RPAREN)
+                return ast_nodes.FuncCall(name=name, args=args)
             return ast_nodes.Var(name=name)
         if ct == TokenType.LPAREN:
             # consume '('

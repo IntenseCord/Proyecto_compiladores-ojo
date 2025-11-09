@@ -2,7 +2,7 @@ read x;
 read y;
 
 while x > y {
-    print "hola";
-
+    print ("hola ");
+    x = x - 1;
 }
 end;

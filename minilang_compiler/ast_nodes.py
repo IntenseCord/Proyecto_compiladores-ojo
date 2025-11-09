@@ -10,7 +10,20 @@ class Node:
 
 @dataclass
 class Program(Node):
+    functions: List[Any]  # List of FuncDef
     statements: List[Node]
+
+
+@dataclass
+class FuncDef(Node):
+    name: str
+    params: List[str]
+    body: List[Node]
+
+
+@dataclass
+class Return(Node):
+    expr: Any
 
 
 @dataclass
@@ -43,10 +56,24 @@ class While(Node):
 
 
 @dataclass
+class For(Node):
+    init: Any  # Assign node
+    cond: Any  # Condition expression
+    update: Any  # Assign node
+    body: List[Node]
+
+
+@dataclass
 class BinaryOp(Node):
     op: str
     left: Any
     right: Any
+
+
+@dataclass
+class UnaryOp(Node):
+    op: str
+    operand: Any
 
 
 @dataclass
@@ -62,3 +89,9 @@ class StringLiteral(Node):
 @dataclass
 class Var(Node):
     name: str
+
+
+@dataclass
+class FuncCall(Node):
+    name: str
+    args: List[Any]

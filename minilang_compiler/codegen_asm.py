@@ -5,6 +5,15 @@ Traduce TAC a instrucciones simbólicas tipo: LOAD, STORE, ADD, SUB, MUL, DIV, J
 from typing import List
 
 
+def is_number(s):
+    """Check if a string represents a number (including negative)."""
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
 def generate_asm(tac_list) -> List[str]:
     asm: List[str] = []
     # We'll treat temps like named variables (t1,t2,...)
@@ -21,7 +30,7 @@ def generate_asm(tac_list) -> List[str]:
             if src.startswith('"') and src.endswith('"'):
                 # String literal
                 asm.append(f"PUSH {src}")
-            elif src.isdigit():
+            elif is_number(src):
                 asm.append(f"PUSH {src}")
             else:
                 asm.append(f"LOAD {src}")
@@ -29,7 +38,7 @@ def generate_asm(tac_list) -> List[str]:
         elif instr.op == 'assign':
             target = instr.a
             src = instr.b
-            if isinstance(src, str) and (src.isdigit() or (src.startswith('"') and src.endswith('"'))):
+            if isinstance(src, str) and (is_number(src) or (src.startswith('"') and src.endswith('"'))):
                 asm.append(f"PUSH {src}")
             else:
                 asm.append(f"LOAD {src}")
@@ -39,11 +48,11 @@ def generate_asm(tac_list) -> List[str]:
             op = instr.b
             left, right = instr.c
             # push left then right
-            if isinstance(left, str) and left.isdigit():
+            if isinstance(left, str) and is_number(left):
                 asm.append(f"PUSH {left}")
             else:
                 asm.append(f"LOAD {left}")
-            if isinstance(right, str) and right.isdigit():
+            if isinstance(right, str) and is_number(right):
                 asm.append(f"PUSH {right}")
             else:
                 asm.append(f"LOAD {right}")

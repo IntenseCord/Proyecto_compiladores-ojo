@@ -16,6 +16,9 @@ class TokenType(Enum):
     IF = auto()
     ELSE = auto()
     WHILE = auto()
+    FOR = auto()
+    DEF = auto()
+    RETURN = auto()
     END = auto()
 
     # Operators
@@ -39,6 +42,7 @@ class TokenType(Enum):
     RBRACE = auto()
     LPAREN = auto()
     RPAREN = auto()
+    COMMA = auto()
 
 
 @dataclass

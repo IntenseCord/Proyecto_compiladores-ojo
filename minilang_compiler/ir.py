@@ -44,6 +44,12 @@ class IRGenerator:
 
     def generate(self, program: ast.Program) -> List[TACInstr]:
         self.code = []
+        self.functions = {}
+        # Note: For simplicity, we're not implementing full function support with stack frames
+        # Functions are stored but not called in this MVP version
+        # This would require implementing CALL/RET instructions and stack management in the VM
+        for func in program.functions:
+            self.functions[func.name] = func
         for stmt in program.statements:
             self.gen_stmt(stmt)
         return self.code
@@ -55,6 +61,11 @@ class IRGenerator:
         if isinstance(node, ast.Print):
             v = self.gen_expr(node.expr)
             self.emit(TACInstr('print', a=v))
+            return
+        if isinstance(node, ast.Return):
+            # For now, treat return like assignment to a special variable
+            v = self.gen_expr(node.expr)
+            self.emit(TACInstr('return', a=v))
             return
         if isinstance(node, ast.Assign):
             src = self.gen_expr(node.expr)
@@ -99,6 +110,29 @@ class IRGenerator:
             self.emit(TACInstr('goto', a=start))
             self.emit(TACInstr('label', a=end))
             return
+        if isinstance(node, ast.For):
+            # for init; cond; update { body }
+            # Translate to: init; start: if cond goto body; goto end; body: ...; update; goto start; end:
+            # Generate init
+            self.gen_stmt(node.init)
+            start = self.new_label()
+            body_label = self.new_label()
+            end = self.new_label()
+            self.emit(TACInstr('label', a=start))
+            left, op, right = self.flatten_cond(node.cond)
+            # if cond goto body_label
+            self.emit(TACInstr('ifgoto', a=left, b=op, c=(right, body_label)))
+            # else goto end
+            self.emit(TACInstr('goto', a=end))
+            self.emit(TACInstr('label', a=body_label))
+            # body
+            for s in node.body:
+                self.gen_stmt(s)
+            # update
+            self.gen_stmt(node.update)
+            self.emit(TACInstr('goto', a=start))
+            self.emit(TACInstr('label', a=end))
+            return
         raise Exception(f"Unhandled stmt in IR generation: {node}")
 
     def flatten_cond(self, cond):
@@ -119,6 +153,23 @@ class IRGenerator:
             return f'"{node.value}"'
         if isinstance(node, ast.Var):
             return node.name
+        if isinstance(node, ast.FuncCall):
+            # For MVP: inline simple function calls (no recursion, no proper stack)
+            # This is a simplified version - proper implementation would need CALL/RET
+            # For now, we'll just note that functions exist but won't generate TAC for calls
+            raise Exception(f"Function calls not fully implemented in TAC generation yet")
+        if isinstance(node, ast.UnaryOp):
+            operand = self.gen_expr(node.operand)
+            if node.op == '-':
+                # Generate: t = 0 - operand
+                t = self.new_temp()
+                self.emit(TACInstr('binop', a=t, b='-', c=('0', operand)))
+                return t
+            elif node.op == '+':
+                # Unary + is a no-op, just return operand
+                return operand
+            else:
+                raise Exception(f"Unknown unary operator: {node.op}")
         if isinstance(node, ast.BinaryOp):
             left = self.gen_expr(node.left)
             right = self.gen_expr(node.right)
