@@ -139,8 +139,10 @@ class SimpleVM:
             if op == 'IN':
                 name = args[0]
                 # simple input via input()
+                import sys
+                print(f"Ingrese valor para {name}: ", end='', flush=True)
                 try:
-                    v = int(input(f"IN {name}: "))
+                    v = int(input())
                 except Exception:
                     v = 0
                 self.vars[name] = v
